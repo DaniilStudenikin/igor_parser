@@ -1,0 +1,5 @@
+data/
+venv/
+test.py
+killprice24/data
+killprice24/data.zip
