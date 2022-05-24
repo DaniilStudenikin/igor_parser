@@ -15,9 +15,9 @@ class KillPrice24Parser:
         response = requests.get(self.__main_page_url)
         categories = dict()
         src = BeautifulSoup(response.text, 'lxml')
-        categories_urls = src.find('ul', {'id': 'nav'}).find_all('a')
+        categories_urls = src.find('ul', {'id': 'nav'}).find_all('li', class_='level_1')
         for elem in categories_urls:
-            categories[elem.text] = elem.get('href')
+            categories[elem.find('a').text.strip()] = elem.find('a').get('href')
         return categories
 
     def get_all_product_urls(self, category_url):
@@ -58,14 +58,16 @@ class KillPrice24Parser:
                 continue
 
     def write_to_csv(self, headers, data, package_path, csv_file_name):
-        if not os.path.exists(f'killprice24/data/{package_path}'):
-            os.makedirs(f'killprice24/data/{package_path}')
         if csv_file_name.__contains__('/'):
             filename = csv_file_name.split('/')
             csv_file_name = ''
             for elem in filename:
                 csv_file_name += elem + '_'
-        with open(f'killprice24/data/{package_path}/{csv_file_name}.csv', 'w') as csv_file:
+            csv_file_name = csv_file_name[:-1]
+        if not os.path.exists(f'killprice24_old/data/{csv_file_name}'):
+            os.makedirs(f'killprice24_old/data/{csv_file_name}')
+
+        with open(f'killprice24_old/data/{csv_file_name}/{csv_file_name}.csv', 'w') as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=headers, restval=None)
             writer.writeheader()
             for row in data:
@@ -89,10 +91,10 @@ class KillPrice24Parser:
             data['Sale price'] = sale_price.replace(u'\xa0', '')
         except AttributeError:
             data['Sale price'] = 0
-        images_ = src.find('div', class_='image').find_all('img')
+        images_ = src.find('div', class_='image').find_all('a', class_='zoom')
         image_str = ''
         for img in images_:
-            image_str += img.get('src') + '|'
+            image_str += img.get('href') + '|'
         data['Images'] = image_str[:-1]
         # Характеристики есть не у всех
         info = src.find('div', {'id': 'profile'})

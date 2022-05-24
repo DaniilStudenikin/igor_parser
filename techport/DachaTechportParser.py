@@ -19,22 +19,26 @@ class SoloCategoryParse:
         resp = requests.get(f'{self.__main_page_url}{self.__url_to_category}')
         src = BeautifulSoup(resp.text, 'lxml')
         tcp_row = src.find('div', class_='tcp-row')
-        tcp_containers = tcp_row.find_all('div', class_='tcp-container')
+        print(tcp_row)
+        tcp_containers = tcp_row.find_all('div', class_='tcp-directory-item')
+        print(tcp_containers)
         for tcp_container in tcp_containers:
-            self.__package_name = tcp_container.find('div', class_='categories-block-button_title two-lines').text
+            self.__package_name = tcp_container.find('img').get('alt')
             category_url = tcp_container.find('a')
-            url_subcategory = tcp_container.find('div', class_='categories-block-cat tcp-js-scrollable').find_all('a',
-                                                                                                                  class_='tcp-directory-item__link')
+            url_subcategory = tcp_container.find('div', class_='tcp-directory-item__content').find_all('a',
+                                                                                                       class_='tcp-directory-item__link two-lines')
 
             if len(url_subcategory) == 0:
                 urls = self.parse_products_urls(category_url.get('href'))
                 category = category_url.get('href')
+                print(category)
                 pages, pages_with_tables = self.get_product_pages(urls)
                 self.parsing_products(pages, pages_with_tables, category_url.get('href'), category)
             else:
                 for elem in url_subcategory:
                     urls = self.parse_products_urls(elem.get('href'))
                     category = elem.get('href')
+                    print(category)
                     pages, pages_with_tables = self.get_product_pages(urls)
                     self.parsing_products(pages, pages_with_tables, elem.text, category)
 
@@ -60,6 +64,8 @@ class SoloCategoryParse:
                 if not sub_category_headers.__contains__(elem):
                     sub_category_headers.append(elem)
             sub_category_products_data.append(product_data)
+        print(self.__package_name)
+        print(sub_package)
         if not os.path.exists(f'{self.__package_name}/{sub_package}'):
             os.makedirs(f'{self.__package_name}/{sub_package}')
         csv_name = sub_package.split("/")
@@ -157,14 +163,6 @@ class SoloCategoryParse:
 
 
 if __name__ == '__main__':
-    vstraivaemaya_byt_technika = SoloCategoryParse('/katalog/products/dacha-sad-i-park')
+    vstraivaemaya_byt_technika = SoloCategoryParse('/katalog/products/elektrotransport')
     vstraivaemaya_byt_technika.parse()
     print('done')
-    # otduh_i_turizm = SoloCategoryParse('/katalog/products/otdyh-i-turizm')
-    # otduh_i_turizm.parse()
-    # umnyy_dom = SoloCategoryParse('/katalog/umnyy-dom')
-    # umnyy_dom.parse()
-    # elektrotransport = SoloCategoryParse('/katalog/products/elektrotransport')
-    # elektrotransport.parse()
-    # vse_dlya_detey = SoloCategoryParse('/katalog/products/vse-dlja-detej')
-    # vse_dlya_detey.parse()
